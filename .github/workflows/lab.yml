@@ -43,6 +43,11 @@ jobs:
           PrivateKey = ${SERVER_PRIV}
           PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
           PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+          # Autoriser ton MikroTik
+          [Peer]
+          PublicKey = I1AJItplZSU6NRk2U61AvneTNOCk58pvnXqLbOZeFTQ=
+          AllowedIPs = 10.99.99.2/32
           EOF"
           sudo wg-quick up wg0
           sudo wg show
