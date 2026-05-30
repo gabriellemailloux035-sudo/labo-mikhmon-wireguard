@@ -6,11 +6,8 @@ on:
 jobs:
   test-lab:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 heures
+    timeout-minutes: 360
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Install WireGuard and Mikhmon dependencies
         run: |
           sudo apt update
@@ -32,14 +29,11 @@ jobs:
           SERVER_PUB=$(sudo cat /etc/wireguard/server_public.key)
           echo "SERVER_PUBLIC_KEY=$SERVER_PUB" >> $GITHUB_ENV
 
-          # Create WireGuard config
           sudo tee /etc/wireguard/wg0.conf > /dev/null <<EOF
 [Interface]
 Address = 10.99.99.1/24
 ListenPort = 51820
 PrivateKey = ${SERVER_PRIV}
-
-# Peers will be added later
 EOF
 
           sudo wg-quick up wg0
@@ -47,7 +41,6 @@ EOF
 
       - name: Get Public IP
         run: |
-          curl -s ifconfig.me
           echo "PUBLIC_IP=$(curl -s ifconfig.me)" >> $GITHUB_ENV
 
       - name: Keep Alive
