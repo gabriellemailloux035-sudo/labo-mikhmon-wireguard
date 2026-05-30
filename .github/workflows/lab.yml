@@ -1,0 +1,67 @@
+name: Labo MIKHMON ONLINE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 heures
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install WireGuard and Mikhmon dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y wireguard wireguard-tools apache2 php php-mysql php-curl php-xml php-mbstring unzip git iptables
+          sudo systemctl enable --now apache2
+
+      - name: Install Mikhmon
+        run: |
+          sudo git clone https://github.com/laksa19/mikhmon.git /var/www/html/mikhmon
+          sudo chown -R www-data:www-data /var/www/html/mikhmon
+          sudo chmod -R 755 /var/www/html/mikhmon
+
+      - name: Configure WireGuard Server
+        run: |
+          sudo mkdir -p /etc/wireguard
+          wg genkey | sudo tee /etc/wireguard/server_private.key
+          sudo cat /etc/wireguard/server_private.key | wg pubkey | sudo tee /etc/wireguard/server_public.key
+          SERVER_PRIV=$(sudo cat /etc/wireguard/server_private.key)
+          SERVER_PUB=$(sudo cat /etc/wireguard/server_public.key)
+          echo "SERVER_PUBLIC_KEY=$SERVER_PUB" >> $GITHUB_ENV
+
+          # Create WireGuard config
+          sudo tee /etc/wireguard/wg0.conf > /dev/null <<EOF
+[Interface]
+Address = 10.99.99.1/24
+ListenPort = 51820
+PrivateKey = ${SERVER_PRIV}
+
+# Peers will be added later
+EOF
+
+          sudo wg-quick up wg0
+          sudo wg show
+
+      - name: Get Public IP
+        run: |
+          curl -s ifconfig.me
+          echo "PUBLIC_IP=$(curl -s ifconfig.me)" >> $GITHUB_ENV
+
+      - name: Keep Alive
+        run: |
+          echo "==========================================="
+          echo "🌐 LABO MIKHMON ONLINE PRÊT"
+          echo "==========================================="
+          echo "IP Publique du serveur : $(curl -s ifconfig.me)"
+          echo "Clé publique WireGuard : $SERVER_PUBLIC_KEY"
+          echo "Interface WireGuard : 10.99.99.1/24"
+          echo "Port WireGuard : 51820"
+          echo "Mikhmon : http://$(curl -s ifconfig.me)/mikhmon"
+          echo "==========================================="
+          while true; do
+            sleep 300
+            echo "[$(date)] Labo toujours actif..."
+          done
