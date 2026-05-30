@@ -21,7 +21,10 @@ jobs:
 
       - name: Install Mikhmon
         run: |
-          sudo git clone https://github.com/laksa19/mikhmon.git /var/www/html/mikhmon
+          sudo mkdir -p /var/www/html/mikhmon
+          sudo wget -q https://codeload.github.com/laksa19/mikhmonv3/zip/master -O /tmp/mikhmonv3-master.zip
+          sudo unzip /tmp/mikhmonv3-master.zip -d /tmp/
+          sudo cp -r /tmp/mikhmonv3-master/* /var/www/html/mikhmon/
           sudo chown -R www-data:www-data /var/www/html/mikhmon
           sudo chmod -R 755 /var/www/html/mikhmon
 
